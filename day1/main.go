@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -21,6 +22,8 @@ var digitsSpelled map[string]int = map[string]int{
 	"nine":  9,
 }
 
+var errFoundNoDigit error = fmt.Errorf("no digit at position")
+
 func main() {
 	data, err := os.ReadFile("input.txt")
 	if err != nil {
@@ -29,56 +32,36 @@ func main() {
 
 	calVals := make([]int, 0)
 	for _, line := range strings.Split(string(data), "\n") {
+		log.Println(line)
 		first := -1
-		for i, char := range line {
-			found := false
-			if strings.Contains(digits, string(char)) {
-				log.Println("first digit is numeric: ", string(char))
-				first, err = strconv.Atoi(string(char))
-				if err != nil {
-					log.Fatal(err)
-				}
-				found = true
+		for i := range line {
+			found, err := digitAtPosition(line, i)
+			if err == errFoundNoDigit {
+				continue
+			} else if err != nil {
+				log.Fatal(err)
 			}
-			for k, v := range digitsSpelled {
-				dex := strings.Index(line[i:], k)
-				if dex == 0 {
-					log.Println("last digit is spelled: ", k)
-					first = v
-					found = true
-				}
-			}
-			if found {
-				break
-			}
+			log.Println("first digit:", found)
+			first = found
+			break
 		}
 		if first == -1 {
 			log.Fatal("found no digits on this line")
 		}
 		last := -1
 		for i := len(line) - 1; i >= 0; i-- {
-			found := false
-			if strings.Contains(digits, string(line[i])) {
-				log.Println("last digit is numeric: ", string(line[i]))
-				last, err = strconv.Atoi(string(line[i]))
-				if err != nil {
-					log.Fatal(err)
-				}
-				found = true
+			found, err := digitAtPosition(line, i)
+			if err == errFoundNoDigit {
+				continue
+			} else if err != nil {
+				log.Fatal(err)
 			}
-			for k, v := range digitsSpelled {
-				dex := strings.Index(line[i:], k)
-				if dex == 0 {
-					log.Println("last digit is spelled: ", k)
-					last = v
-					found = true
-				}
-			}
-			if found {
-				break
-			}
+			log.Println("last digit:", found)
+			last = found
+			break
 		}
 		if last == -1 {
+			// This shouldn't ever happen because the backwards loop will just capture the same digit that the forward loop does.
 			log.Println("only one digit on this line: ", first)
 			last = first
 		}
@@ -92,4 +75,17 @@ func main() {
 		sum += value
 	}
 	log.Println(sum)
+}
+
+func digitAtPosition(s string, idx int) (int, error) {
+	if strings.Contains(digits, string(s[idx])) {
+		return strconv.Atoi(string(s[idx]))
+	}
+	for k, v := range digitsSpelled {
+		digIdx := strings.Index(s, k)
+		if digIdx == idx {
+			return v, nil
+		}
+	}
+	return -1, errFoundNoDigit
 }
