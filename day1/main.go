@@ -32,7 +32,7 @@ func main() {
 
 	calVals := make([]int, 0)
 	for _, line := range strings.Split(string(data), "\n") {
-		log.Println(line)
+		// log.Println(line)
 		first := -1
 		for i := range line {
 			found, err := digitAtPosition(line, i)
@@ -77,15 +77,24 @@ func main() {
 	log.Println(sum)
 }
 
+/*
+2023/12/01 13:50:09 fivefour7nineseven1qtcdqbp1four
+2023/12/01 13:50:09 first digit: 5
+2023/12/01 13:50:09 last digit: 1
+2023/12/01 13:50:09 value:  51
+*/
+
 func digitAtPosition(s string, idx int) (int, error) {
 	if strings.Contains(digits, string(s[idx])) {
 		return strconv.Atoi(string(s[idx]))
 	}
 	for k, v := range digitsSpelled {
-		digIdx := strings.Index(s, k)
-		if digIdx == idx {
+		// log.Println(k, v)
+		digIdx := strings.Index(s[idx:], k)
+		if digIdx == 0 {
 			return v, nil
 		}
 	}
+	// log.Println(s[idx:])
 	return -1, errFoundNoDigit
 }
