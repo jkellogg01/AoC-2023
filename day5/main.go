@@ -106,22 +106,30 @@ func PartTwo(lines []string) {
 	log.Printf("found %v maps", len(maps))
 
 	min := -1
+	// lastOffset := 0
 	for _, sr := range seeds {
-		log.Printf("parsing seed range: %v - %v\n", sr.Start, sr.End)
+		log.Printf("parsing seed range: %v - %v", sr.Start, sr.End)
 		for i := sr.Start; i <= sr.End; i++ {
 			curr := i
 			for _, m := range maps {
 				curr = m.Displace(curr)
 			}
-			// log.Printf("seed %v -> %v (offset %v)", i, curr, curr-i)
+			// if i == sr.Start || i == sr.End {
+			// 	log.Printf("seed %v -> %v (offset %v)", i, curr, curr-i)
+			// }
+			// if lastOffset != curr-i {
+			// 	log.Printf("OFFSET CHANGE: %v", curr-i)
+			// 	log.Printf("seed %v -> %v (offset %v)", i, curr, curr-i)
+			// 	lastOffset = curr - i
+			// }
 			if curr < min || min < 0 {
 				min = curr
-				log.Printf("new minimum: %v\n", min)
+				log.Printf("new minimum: %v", min)
 			}
 		}
 	}
 
-	log.Printf("part two: minimum seed location %v\n", min)
+	log.Printf("part two: minimum seed location %v", min)
 }
 
 func (m *Map) Displace(n int) int {
