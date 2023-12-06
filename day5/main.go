@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 type Offset struct {
@@ -50,41 +49,35 @@ func PartOne(lines []string) {
 			continue
 		}
 		if numRow.MatchString(line) {
-			maps[len(maps)-1].Append(line)
+			maps[len(maps)-1] = append(maps[len(maps)-1], newOffset(line))
 		}
 	}
-
-	wg := new(sync.WaitGroup)
-	var seedLocations []int
-	for i, seed := range seeds {
-		wg.Add(1)
-		log.Printf("displacing seed #%v (seed location %v)", i, seed)
-		go func(seed int) {
-			curr := seed
-			for _, m := range maps {
-				curr = m.Displace(curr)
-			}
-			seedLocations = append(seedLocations, curr)
-			wg.Done()
-		}(seed)
-	}
-	wg.Wait()
+	log.Printf("found %v maps", len(maps))
 
 	min := -1
-	for _, loc := range seedLocations {
-		if loc < min || min < 0 {
-			min = loc
+	for _, seed := range seeds {
+		curr := seed
+		for _, m := range maps {
+			curr = m.Displace(curr)
+		}
+		// log.Printf("seed %v -> %v (offset %v)", seed, curr, curr-seed)
+		if curr < min || min < 0 {
+			min = curr
+			log.Printf("new minimum: %v\n", min)
 		}
 	}
+
 	log.Printf("part one: minimum seed location %v\n", min)
 }
 
 func PartTwo(lines []string) {
 	seedGlob, _ := strings.CutPrefix(lines[0], "seeds: ")
-	var seeds []int
-	log.Println(seedGlob)
+	var seeds []struct {
+		Start int
+		End   int
+	}
 	seedPairs := regexp.MustCompile(`(\d+) (\d+)`)
-	for i, pair := range seedPairs.FindAllStringSubmatch(seedGlob, -1) {
+	for _, pair := range seedPairs.FindAllStringSubmatch(seedGlob, -1) {
 		start, err := strconv.Atoi(pair[1])
 		if err != nil {
 			log.Fatal(err)
@@ -93,14 +86,11 @@ func PartTwo(lines []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		end := start + dist
-		log.Println(i, start, dist)
-		for i := start; i < end; i++ {
-			seeds = append(seeds, i)
-		}
-		// log.Println("finished appending seeds")
+		seeds = append(seeds, struct {
+			Start int
+			End   int
+		}{Start: start, End: start + dist})
 	}
-	log.Println(len(seeds))
 
 	var maps []Map
 	numRow := regexp.MustCompile(`\d+ \d+ \d+`)
@@ -110,33 +100,27 @@ func PartTwo(lines []string) {
 			continue
 		}
 		if numRow.MatchString(line) {
-			maps[len(maps)-1].Append(line)
+			maps[len(maps)-1] = append(maps[len(maps)-1], newOffset(line))
 		}
 	}
+	log.Printf("found %v maps", len(maps))
 
-	wg := new(sync.WaitGroup)
-	var seedLocations []int
-	for _, seed := range seeds {
-		wg.Add(1)
-		log.Printf("displacing seed at %v", seed)
-		go func(seed int) {
-			curr := seed
+	min := -1
+	for _, sr := range seeds {
+		log.Printf("parsing seed range: %v - %v\n", sr.Start, sr.End)
+		for i := sr.Start; i <= sr.End; i++ {
+			curr := i
 			for _, m := range maps {
 				curr = m.Displace(curr)
 			}
-			seedLocations = append(seedLocations, curr)
-			log.Printf("finished displacing seed %v", seed)
-			wg.Done()
-		}(seed)
-	}
-	wg.Wait()
-
-	min := -1
-	for _, loc := range seedLocations {
-		if loc < min || min < 0 {
-			min = loc
+			// log.Printf("seed %v -> %v (offset %v)", i, curr, curr-i)
+			if curr < min || min < 0 {
+				min = curr
+				log.Printf("new minimum: %v\n", min)
+			}
 		}
 	}
+
 	log.Printf("part two: minimum seed location %v\n", min)
 }
 
@@ -151,7 +135,7 @@ func (m *Map) Displace(n int) int {
 	return n
 }
 
-func (m *Map) Append(line string) {
+func newOffset(line string) *Offset {
 	// dest start, source start, range length
 	next := new(Offset)
 	var row []int
@@ -165,5 +149,5 @@ func (m *Map) Append(line string) {
 	next.Dest = row[0]
 	next.Source = row[1]
 	next.Length = row[2]
-	*m = append(*m, next)
+	return next
 }
