@@ -39,12 +39,11 @@ func PartOne(lines []string) {
 	}
 
 	var maps []Map
-	numRow, err := regexp.Compile(`\d+ \d+ \d+`)
-	if err != nil {
-		log.Fatal(err)
-	}
+	mapStart := regexp.MustCompile(`.*map:`)
+	numRow := regexp.MustCompile(`\d+ \d+ \d+`)
 	for _, line := range lines[1:] {
-		if line == "" {
+		if mapStart.MatchString(line) {
+			// log.Println(line)
 			maps = append(maps, make(Map, 0))
 			continue
 		}
@@ -97,7 +96,7 @@ func PartTwo(lines []string) {
 	mapStart := regexp.MustCompile(`.*map:`)
 	for _, line := range lines[1:] {
 		if mapStart.MatchString(line) {
-			log.Println(line)
+			// log.Println(line)
 			maps = append(maps, make(Map, 0))
 			continue
 		}
