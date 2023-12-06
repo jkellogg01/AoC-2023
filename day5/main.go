@@ -94,8 +94,10 @@ func PartTwo(lines []string) {
 
 	var maps []Map
 	numRow := regexp.MustCompile(`\d+ \d+ \d+`)
+	mapStart := regexp.MustCompile(`.*map:`)
 	for _, line := range lines[1:] {
-		if line == "" {
+		if mapStart.MatchString(line) {
+			log.Println(line)
 			maps = append(maps, make(Map, 0))
 			continue
 		}
