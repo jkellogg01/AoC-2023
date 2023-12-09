@@ -103,3 +103,7 @@ func leastCommonMultiple(nums []int) int {
 	}
 	return -1
 }
+
+// func lcmForTheHaters(nums []int) int {
+
+// }
